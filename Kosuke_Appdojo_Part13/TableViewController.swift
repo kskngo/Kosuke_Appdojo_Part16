@@ -38,25 +38,14 @@ class TableViewController: UITableViewController {
     }
 
     @IBAction private func exitAdd(segue: UIStoryboardSegue) {
-        guard let addItemViewController = segue.source as? AddItemViewController else { return }
-        guard let newItem = addItemViewController.newFruitsItem else { return }
-        fruitsItems.append(newItem)
-        tableView.reloadData()
     }
 
     @IBAction private func exitEdit(segue: UIStoryboardSegue) {
-        guard let addItemViewController = segue.source as? AddItemViewController else { return }
-        guard let editItem = addItemViewController.editFruitsItem else { return }
-        guard let indexForEditing = indexForEditing else { return }
-        fruitsItems[indexForEditing].name = editItem.name
-        tableView.reloadRows(at: [IndexPath(row: indexForEditing, section: 0)], with: .automatic)
-        self.indexForEditing = nil
     }
 
     override func tableView(_ tableView: UITableView, accessoryButtonTappedForRowWith indexPath: IndexPath) {
         indexForEditing = indexPath.row
 
-        // TODO: senderやめたい
         performSegue(withIdentifier: "Edit", sender: fruitsItems[indexPath.row])
     }
 
@@ -68,10 +57,27 @@ class TableViewController: UITableViewController {
         switch segue.identifier ?? "" {
         case "Edit":
             guard let editFruitsItem = sender as? FruitsItem else { return }
-            addItemViewController.editFruitsItem = editFruitsItem
-            addItemViewController.mode = .edit
+            guard let indexForEditing = indexForEditing else { return }
+
+            addItemViewController.mode = .edit(
+                target: editFruitsItem,
+                completion: { [weak self] fruitsItem in
+                    guard let fruitsItem = fruitsItem else { return }
+
+                    self?.fruitsItems[indexForEditing] = fruitsItem
+                    self?.tableView.reloadRows(at: [IndexPath(row: indexForEditing, section: 0)], with: .automatic)
+                    self?.indexForEditing = nil
+                }
+            )
         case "Add":
-            addItemViewController.mode = .add
+            addItemViewController.mode = .add(
+                completion: { [weak self] fruitsItem in
+                    guard let fruitsItem = fruitsItem else { return }
+
+                    self?.fruitsItems.append(fruitsItem)
+                    self?.tableView.reloadData()
+                }
+            )
         default:
             break
         }
