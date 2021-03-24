@@ -49,16 +49,15 @@ class TableViewController: UITableViewController {
         guard let editItem = addItemViewController.editFruitsItem else { return }
         guard let indexForEditing = indexForEditing else { return }
         fruitsItems[indexForEditing].name = editItem.name
-        tableView.reloadRows(at: [IndexPath(row: editItem.index, section: 0)], with: .automatic)
+        tableView.reloadRows(at: [IndexPath(row: indexForEditing, section: 0)], with: .automatic)
         self.indexForEditing = nil
     }
 
     override func tableView(_ tableView: UITableView, accessoryButtonTappedForRowWith indexPath: IndexPath) {
-        let editFruitsItem = EditFruitsItem(
-            name: fruitsItems[indexPath.row].name,
-            index: indexPath.row)
         indexForEditing = indexPath.row
-        performSegue(withIdentifier: "Edit", sender: editFruitsItem)
+
+        // TODO: senderやめたい
+        performSegue(withIdentifier: "Edit", sender: fruitsItems[indexPath.row])
     }
 
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
@@ -68,7 +67,7 @@ class TableViewController: UITableViewController {
 
         switch segue.identifier ?? "" {
         case "Edit":
-            guard let editFruitsItem = sender as? EditFruitsItem else { return }
+            guard let editFruitsItem = sender as? FruitsItem else { return }
             addItemViewController.editFruitsItem = editFruitsItem
             addItemViewController.mode = .edit
         case "Add":
@@ -82,9 +81,4 @@ class TableViewController: UITableViewController {
 struct FruitsItem {
     var name: String
     var isChecked: Bool
-}
-
-struct EditFruitsItem {
-    var name: String
-    let index: Int
 }

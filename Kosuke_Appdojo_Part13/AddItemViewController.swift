@@ -10,7 +10,7 @@ import UIKit
 class AddItemViewController: UIViewController {
     @IBOutlet private weak var nameTextField: UITextField!
     private(set) var newFruitsItem: FruitsItem?
-    var editFruitsItem: EditFruitsItem?
+    var editFruitsItem: FruitsItem?
 
     enum Mode {
         case add, edit
