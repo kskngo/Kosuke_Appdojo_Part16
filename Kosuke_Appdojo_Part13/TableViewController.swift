@@ -8,6 +8,8 @@
 import UIKit
 
 class TableViewController: UITableViewController {
+    private var indexForEditing: Int?
+
     private var fruitsItems = [
         FruitsItem(name: "りんご", isChecked: false),
         FruitsItem(name: "みかん", isChecked: true),
@@ -36,24 +38,15 @@ class TableViewController: UITableViewController {
     }
 
     @IBAction private func exitAdd(segue: UIStoryboardSegue) {
-        guard let addItemViewController = segue.source as? AddItemViewController else { return }
-        guard let newItem = addItemViewController.newFruitsItem else { return }
-        fruitsItems.append(newItem)
-        tableView.reloadData()
     }
 
     @IBAction private func exitEdit(segue: UIStoryboardSegue) {
-        guard let addItemViewController = segue.source as? AddItemViewController else { return }
-        guard let editItem = addItemViewController.editFruitsItem else { return }
-        fruitsItems[editItem.index].name = editItem.name
-        tableView.reloadRows(at: [IndexPath(row: editItem.index, section: 0)], with: .automatic)
     }
 
     override func tableView(_ tableView: UITableView, accessoryButtonTappedForRowWith indexPath: IndexPath) {
-        let editFruitsItem = EditFruitsItem(
-            name: fruitsItems[indexPath.row].name,
-            index: indexPath.row)
-        performSegue(withIdentifier: "Edit", sender: editFruitsItem)
+        indexForEditing = indexPath.row
+
+        performSegue(withIdentifier: "Edit", sender: fruitsItems[indexPath.row])
     }
 
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
@@ -63,11 +56,28 @@ class TableViewController: UITableViewController {
 
         switch segue.identifier ?? "" {
         case "Edit":
-            guard let editFruitsItem = sender as? EditFruitsItem else { return }
-            addItemViewController.editFruitsItem = editFruitsItem
-            addItemViewController.mode = .edit
+            guard let editFruitsItem = sender as? FruitsItem else { return }
+            guard let indexForEditing = indexForEditing else { return }
+
+            addItemViewController.mode = .edit(
+                target: editFruitsItem,
+                completion: { [weak self] fruitsItem in
+                    guard let fruitsItem = fruitsItem else { return }
+
+                    self?.fruitsItems[indexForEditing] = fruitsItem
+                    self?.tableView.reloadRows(at: [IndexPath(row: indexForEditing, section: 0)], with: .automatic)
+                    self?.indexForEditing = nil
+                }
+            )
         case "Add":
-            addItemViewController.mode = .add
+            addItemViewController.mode = .add(
+                completion: { [weak self] fruitsItem in
+                    guard let fruitsItem = fruitsItem else { return }
+
+                    self?.fruitsItems.append(fruitsItem)
+                    self?.tableView.reloadData()
+                }
+            )
         default:
             break
         }
@@ -77,9 +87,4 @@ class TableViewController: UITableViewController {
 struct FruitsItem {
     var name: String
     var isChecked: Bool
-}
-
-struct EditFruitsItem {
-    var name: String
-    let index: Int
 }

@@ -9,36 +9,55 @@ import UIKit
 
 class AddItemViewController: UIViewController {
     @IBOutlet private weak var nameTextField: UITextField!
-    private(set) var newFruitsItem: FruitsItem?
-    var editFruitsItem: EditFruitsItem?
 
     enum Mode {
-        case add, edit
+        case add(completion: (FruitsItem?) -> Void)
+        case edit(target: FruitsItem, completion: (FruitsItem?) -> Void)
     }
-    var mode = Mode.add
+
+    var mode: Mode?
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        if mode == .edit {
-            nameTextField.text = editFruitsItem?.name
+
+        guard let mode = mode else {
+            fatalError("mode is nil.")
+        }
+
+        switch mode {
+        case .add:
+            break
+        case let .edit(target: fruitsItem, completion: _):
+            nameTextField.text = fruitsItem.name
         }
     }
 
     @IBAction private func didTapSaveButton(_ sender: Any) {
-        if mode == .edit {
+        guard let mode = mode else {
+            fatalError("mode is nil.")
+        }
+
+        switch mode {
+        case let .add(completion: completion):
             let name = nameTextField.text ?? ""
-            if !name.isEmpty {
-                editFruitsItem!.name = name
-            }
-            performSegue(withIdentifier: "EditSegue", sender: nil)
-        } else if mode == .add {
-            let name = nameTextField.text ?? ""
-            if !name.isEmpty {
-                newFruitsItem = FruitsItem(
-                    name: name,
-                    isChecked: false)
+            if name.isEmpty {
+                completion(nil)
+            } else {
+                completion(
+                    FruitsItem(name: name, isChecked: false)
+                )
             }
             performSegue(withIdentifier: "AddSegue", sender: nil)
+        case let .edit(target: fruitsItem, completion: completion):
+            let name = nameTextField.text ?? ""
+            if name.isEmpty {
+                completion(nil)
+            } else {
+                completion(
+                    FruitsItem(name: name, isChecked: fruitsItem.isChecked)
+                )
+            }
+            performSegue(withIdentifier: "EditSegue", sender: nil)
         }
     }
 }
