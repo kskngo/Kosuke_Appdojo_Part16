@@ -8,6 +8,8 @@
 import UIKit
 
 class TableViewController: UITableViewController {
+    private var indexForEditing: Int?
+
     private var fruitsItems = [
         FruitsItem(name: "りんご", isChecked: false),
         FruitsItem(name: "みかん", isChecked: true),
@@ -45,14 +47,17 @@ class TableViewController: UITableViewController {
     @IBAction private func exitEdit(segue: UIStoryboardSegue) {
         guard let addItemViewController = segue.source as? AddItemViewController else { return }
         guard let editItem = addItemViewController.editFruitsItem else { return }
-        fruitsItems[editItem.index].name = editItem.name
+        guard let indexForEditing = indexForEditing else { return }
+        fruitsItems[indexForEditing].name = editItem.name
         tableView.reloadRows(at: [IndexPath(row: editItem.index, section: 0)], with: .automatic)
+        self.indexForEditing = nil
     }
 
     override func tableView(_ tableView: UITableView, accessoryButtonTappedForRowWith indexPath: IndexPath) {
         let editFruitsItem = EditFruitsItem(
             name: fruitsItems[indexPath.row].name,
             index: indexPath.row)
+        indexForEditing = indexPath.row
         performSegue(withIdentifier: "Edit", sender: editFruitsItem)
     }
 
