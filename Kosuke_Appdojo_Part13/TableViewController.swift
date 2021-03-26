@@ -48,6 +48,14 @@ class TableViewController: UITableViewController {
         performSegue(withIdentifier: "Edit", sender: fruitsItems[indexPath.row])
     }
 
+    override func tableView(
+        _ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+        if editingStyle == .delete {
+            fruitsItems.remove(at: indexPath.row)
+            tableView.deleteRows(at: [indexPath], with: .automatic)
+        }
+    }
+
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         guard let navigationController = segue.destination as? UINavigationController else { return }
         guard let addItemViewController =
